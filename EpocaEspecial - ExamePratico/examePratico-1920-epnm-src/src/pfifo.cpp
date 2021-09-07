@@ -13,22 +13,23 @@ void init_pfifo(PriorityFIFO* pfifo)
    //memset(pfifo->array, 0, sizeof(pfifo->array));
    //pfifo->inp = pfifo->out = pfifo->cnt = 0;
 
-   //Initialize fifo's mutex
+   //1. Initialize fifo's mutex
    pfifo->accessCR = PTHREAD_MUTEX_INITIALIZER;
-   //Lock access to critical zone
+   
+   //2. Lock access to critical zone
    mutex_lock(&pfifo->accessCR);
 
    memset(pfifo->array, 0, sizeof(pfifo->array));
    pfifo->inp = pfifo->out = pfifo->cnt = pfifo->done = 0;
    
-   //Initialize condition variables
+   //3. Initialize condition variables
    pfifo->fifoNotFull = PTHREAD_COND_INITIALIZER;
    pfifo->fifoNotEmpty = PTHREAD_COND_INITIALIZER;
 
-   //Signal the fifo is not full for all waiting threads
+   //4. Signal the fifo is not full for all waiting threads
    cond_broadcast(&pfifo->fifoNotFull);
 
-   //unlock acess to critical zone
+   //5. unlock acess to critical zone
    mutex_unlock(&pfifo->accessCR);
 
 }
@@ -96,10 +97,10 @@ uint32_t retrieve_pfifo(PriorityFIFO* pfifo)
    //require (!empty_pfifo(pfifo), "empty FIFO");       // in a shared fifo, it may not result from a program error!
 
    //------------------
-   //Lock access to critical zone
+   //1. Lock access to critical zone
    mutex_lock(&pfifo->accessCR);
 
-   //while fifo is empty wait (FifoNotEmpty cond variable)
+   //2. while fifo is empty wait (FifoNotEmpty cond variable)
    while (empty_pfifo(pfifo))
    {
       if (pfifo->done == 1)
@@ -138,17 +139,18 @@ uint32_t retrieve_pfifo(PriorityFIFO* pfifo)
 
 
 //------------------------------
+//Faltava a funcao done_pfifo
 void done_pfifo(PriorityFIFO* pfifo)
 {
-   //lock access to critical zone
+   //1. lock access to critical zone
    mutex_lock(&pfifo->accessCR);
 
    pfifo->done = 1;
 
-   //Awake all sleeping threads to finish the simulation
+   //2. Awake all sleeping threads to finish the simulation
    cond_broadcast(&pfifo->fifoNotEmpty);
 
-   //Unlock access to critical zone
+   //3. Unlock access to critical zone
    mutex_unlock(&pfifo->accessCR);
 
 }
@@ -161,7 +163,7 @@ void print_pfifo(PriorityFIFO* pfifo)
 {
    require (pfifo != NULL, "NULL pointer to FIFO");   // a false value indicates a program error
 
-   //Lock access to critical zone
+   //1. Lock access to critical zone
    mutex_lock(&pfifo->accessCR);
 
    uint32_t idx = pfifo->out;
@@ -173,7 +175,7 @@ void print_pfifo(PriorityFIFO* pfifo)
       idx = (idx + 1) % FIFO_MAXSIZE;
    }
 
-   //Unlock access to critical zone
+   //2. Unlock access to critical zone
    mutex_unlock(&pfifo->accessCR);
 }
 
