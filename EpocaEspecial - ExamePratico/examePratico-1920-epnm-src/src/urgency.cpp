@@ -49,7 +49,8 @@ typedef struct
     Patient all_patients[MAX_PATIENTS];
     PriorityFIFO triage_queue;
     PriorityFIFO doctor_queue;
-
+   
+    // Criacao das threads para os doutores, enfermeiros e pacientes
     pthread_t* dthr;    //Doctor Threads
     pthread_t* nthr;    //Nurse Threads
     pthread_t* pthr;    //Patient Threads
@@ -69,7 +70,7 @@ void random_wait();
 
 /* ************************************************* */
 
-//ACRESCENTEI ESTE EXCERTO DE CODIGO
+//ACRESCENTEI ESTE EXCERTO DE CODIGO ->funcoes escritas mais abaixo
 //Thread functions signatures
 void* patientThread(void* args);
 void* nurseThread(void* args);
@@ -78,7 +79,7 @@ void* doctorThread(void* args);
 /* ************************************************* */
 
 /* changes may be required to this function */
-void init_simulation(uint32_t np, uint32_t nn, uint32_t nd)
+void init_simulation(uint32_t np, uint32_t nn, uint32_t nd) // -> adicionei nn e o nd
 {
    printf("Initializing simulation\n");
    hd = (HospitalData*)mem_alloc(sizeof(HospitalData)); // mem_alloc is a malloc with NULL pointer verification
@@ -95,13 +96,14 @@ void init_simulation(uint32_t np, uint32_t nn, uint32_t nd)
    hd->pargs = new uint32_t[np];
 
    /* Initial threads! */
+   // situação inicial de cada thread
 
    /* Launching doctor threads */
    printf("Launching %d doctor threads\n ", nd);
    for (uint32_t i = 0; i < nd; i++)
    {
       printf("\033[1;35mDoctor %d launched\n\033[0m", i);
-      thread_create(&hd->dthr[i], NULL, doctorThread, NULL);
+      thread_create(&hd->dthr[i], NULL, doctorThread, NULL); // -> criacao da doctor's thread
    }
 
    /* Launching nurse threads */
@@ -109,7 +111,7 @@ void init_simulation(uint32_t np, uint32_t nn, uint32_t nd)
    for (uint32_t i = 0; i < nn; i++)
    {
       printf("\033[1;36mNurse %d launched\n\033[0m", i);
-      thread_create(&hd->nthr[i], NULL, nurseThread, NULL);
+      thread_create(&hd->nthr[i], NULL, nurseThread, NULL); // -> criacao da nurse's thread
    }
 
    /* Launching patient threads */
@@ -117,14 +119,14 @@ void init_simulation(uint32_t np, uint32_t nn, uint32_t nd)
    for (uint32_t i = 0; i < np; i++)
    {
       printf("\033[1;33mPatient %d launched\n\033[0m", i);
-      hd->pargs[i] = i;
-      thread_create(&hd->pthr[i], NULL, patientThread, &hd->pargs[i]);
+      hd->pargs[i] = i; // -> numero de pacientes
+      thread_create(&hd->pthr[i], NULL, patientThread, &hd->pargs[i]); // -> criacao da patient's thread
    }
 
    /* Waiting for all patient threads to finish */
    for (uint32_t i = 0; i < np; i++)
    {
-      thread_join(hd->pthr[i], NULL);
+      thread_join(hd->pthr[i], NULL); 
       printf("Patient thread %d has terminated\n", i);
    }
 
@@ -236,7 +238,9 @@ void patient_life(int id)
 }
 
 /* ************************************************* */
+// FUNCOES ADICIONAIS : 
 
+//-----------------
 /*PATIENT THREAD */
 void* patientThread(void* args)
 {
@@ -245,6 +249,7 @@ void* patientThread(void* args)
    return NULL;
 }
 
+//---------------
 /*NURSE THREAD */
 void* nurseThread(void* args) 
 {
@@ -260,6 +265,7 @@ void* nurseThread(void* args)
    
 }
 
+//----------------
 /*DOCTOR THREAD */
 void* doctorThread(void* args)
 {
